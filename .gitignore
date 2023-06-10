@@ -1,1 +1,8 @@
+/.vscode
 /target
+Cargo.lock
+Cargo.toml
+cert.pem
+key.rsa
+key.rsa.pub
+VecU8.key

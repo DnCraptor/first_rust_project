@@ -1,25 +1,6 @@
 // + Cargo.toml
-use futures::StreamExt; // futures = "*"
-use futures::FutureExt; // futures = "*"
+use futures::{StreamExt, FutureExt}; // futures = "*"
 use warp::Filter; // warp = {version="*", features = ["tls"]}
-
-// TODO: use as shared mod?
-pub mod files {
-    use std::io::{Read, Write};
-
-    pub fn read_file(path: &std::path::Path) -> std::io::Result<Vec<u8>> {
-        let mut file = std::fs::File::open(path)?;
-        let mut contents: Vec<u8> = Vec::new();
-        file.read_to_end(&mut contents)?;
-        Ok(contents)
-    }
-    
-    pub fn write_file(path: &std::path::Path, bytes: &[u8]) -> std::io::Result<Vec<u8>> {
-        let mut file = std::fs::File::create(path)?;
-        file.write(bytes)?;
-        Ok(bytes.to_vec())
-    }
-}
 
 pub async fn init() {
     let cert_path = "cert.pem";
@@ -32,10 +13,10 @@ pub async fn init() {
             ()
         },
         Err(_) => {
-            println!("'{}' not found. New random generation...", cert_path);
+            println!("'{}' not found. New self signed cert generation...", cert_path);
             extern crate rcgen; // rcgen = "*"
             use rcgen::generate_simple_self_signed;
-            let subject_alt_names = vec!["selfsigned sert".to_string(), "any".to_string()];
+            let subject_alt_names = vec!["self signed cert".to_string(), "any".to_string()];
             let cert = generate_simple_self_signed(subject_alt_names).unwrap();
             let cert_pem = cert.serialize_pem().unwrap();
             files::write_file(std::path::Path::new(cert_path), cert_pem.as_bytes()).unwrap();

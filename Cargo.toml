@@ -6,6 +6,10 @@ authors = ["Michael Vengerovich"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+name="files"
+path="src/files.rs"
+
 [dependencies]
 iron = "*"
 router = "*"
