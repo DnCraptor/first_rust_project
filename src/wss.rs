@@ -36,11 +36,15 @@ pub async fn init() {
     .map(|ws: warp::ws::Ws| {
         ws.on_upgrade(|websocket| {
             let (tx, rx) = websocket.split();
-            rx.forward(tx).map(|result| {
-                if let Err(e) = result {
-                    eprintln!("websocket error: {:?}", e);
-                }
-            })
+            println!("websocket tx: {:?}", tx);
+            rx
+                .forward(tx/* TODO: ??? */)
+                .map(|result| {
+                    match result {
+                        Err(e) => { eprintln!("websocket error: {:?}", e)} ,
+                        Ok(_) => {  }
+                    }
+                })
         })
     });
 
@@ -50,6 +54,6 @@ pub async fn init() {
        .tls()
        .cert_path(cert_path)
        .key_path(ppk_path)
-       .run(([0, 0, 0, 0], 9231)).await;
-//     .bind(([0, 0, 0, 0], 9231));
+//       .run(([0, 0, 0, 0], 9231)).await;
+     .bind(([0, 0, 0, 0], 9231)).await;
     }

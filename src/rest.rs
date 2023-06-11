@@ -31,6 +31,7 @@ pub fn init() {
             "rid2"
         );
     }
+    println!("rest::init");
     Iron::new(router).http("localhost:3000").unwrap();    
 
 }
