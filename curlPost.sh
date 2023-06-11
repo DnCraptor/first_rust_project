@@ -1,0 +1,1 @@
+curl -k -X POST https://localhost:9231/v1/items -H 'Accept: application/json' -H 'Content-Type: application/json' -d '[12,15]' > curlPost.json

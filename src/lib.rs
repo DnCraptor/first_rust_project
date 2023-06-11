@@ -11,16 +11,3 @@ pub fn write_file(path: &std::path::Path, bytes: &[u8]) -> std::io::Result<Vec<u
     file.write(bytes)?;
     Ok(bytes.to_vec())
 }
-// TODO: mod
-#[derive(Clone)]
-pub struct Store {
-  pub u32_v: Vec<u32>
-}
-
-impl Store {
-    pub fn new() -> Self {
-        Store {
-            u32_v: Vec::new(),
-        }
-    }
-}

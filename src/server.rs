@@ -1,5 +1,6 @@
 // + Cargo.toml
 use warp::Filter; // warp = {version="*", features = ["tls"]}
+use persy::{Persy, Config}; // persy = "*"
 
 mod keygen;
 mod rest;
@@ -30,8 +31,21 @@ pub async fn init() {
         .map(|ws: warp::ws::Ws| wss::handler(ws));
     let ws = warp::get().and(echo);
 
-    let store = lib::Store::new(); // TODO: key-value store
-    let store_filter = warp::any().map(move || store.clone());
+// TODO: separate mod?
+    match Persy::create("./storage.persy") {
+        Ok(_) => { },
+        Err(_) => { /* ignore? */ }
+    }
+    let persy = Persy::open("./storage.persy", Config::new()).unwrap();
+    if !persy.exists_segment("seg").unwrap() {
+        let mut tx = persy.begin().unwrap();
+        tx.create_segment("seg").unwrap();
+        let prepared = tx.prepare().unwrap();
+        prepared.commit().unwrap();
+    }
+
+
+    let store_filter = warp::any().map(move || persy.clone());
 
     // POST https://localhost:9231/v1/items -d '[]'
     let add_items = warp::post()

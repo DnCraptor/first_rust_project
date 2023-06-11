@@ -1,28 +1,35 @@
 // + Cargo.toml
-use warp::Filter; // warp = {version="*", features = ["tls"]}
+use warp::{Filter, Reply, Rejection, body, reply}; // warp = {version="*", features = ["tls"]}
+use persy::Persy; // persy = "*"
 
 // GET
-pub async fn get_store_as_json(store: lib::Store) -> Result<impl warp::Reply, warp::Rejection> {
-    let r = store.u32_v.as_slice();
-    dbg!(r);
-    Ok(warp::reply::json(&r))
+pub async fn get_store_as_json(store: Persy) -> Result<impl Reply, Rejection> {
+    let mut r = Vec::new();
+    for (_id, content) in store.scan("seg").unwrap() {
+        dbg!(_id);
+        dbg!(&content);
+        for el in content {
+            r.push(el as u32);
+        }
+    }
+    Ok(reply::json(&r))
 }
 
 // POST
-pub fn json_body() -> impl Filter<Extract = (Vec<u32>,), Error = warp::Rejection> + Clone {
-    // When accepting a body, we want a JSON body
-    // (and to reject huge payloads)...
-    warp::body::content_length_limit(1024 * 16).and(warp::body::json())
+pub fn json_body() -> impl Filter<Extract = (Vec<u8>,), Error = Rejection> + Clone {
+    // When accepting a body, we want a JSON body (and to reject huge payloads)...
+    body::content_length_limit(1024 * 32).and(body::json())
 }
 pub async fn add_items_list(
-    items: Vec<u32>,
-    store: lib::Store
-    ) -> Result<impl warp::Reply, warp::Rejection> {
+    items: Vec<u8>,
+    store: Persy
+    ) -> Result<impl Reply, Rejection> {
         dbg!(&items);
-        let mut r = store.u32_v;
-        for ele in items {
-            r.push(ele);
-        }
-        dbg!(&r);
-        Ok(warp::reply::json(&r))
+        let mut tx = store.begin().unwrap();
+        let _id = tx.insert("seg", &items).unwrap();
+        let prepared = tx.prepare().unwrap();
+        prepared.commit().unwrap();
+        dbg!(_id);
+        // TODO:
+        Ok(reply::json(&items))
 }
