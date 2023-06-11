@@ -1,8 +1,7 @@
 use std::env;
 
-// mod rest;
 mod keys;
-mod wss;
+mod server;
 mod cron;
 
 #[tokio::main]
@@ -13,7 +12,6 @@ async fn main() {
     cron::init().await;
     keys::init().unwrap();
     keys::test();
-    let future = wss::init();
+    let future = server::init();
     future.await;
-    // rest::init();
 }
