@@ -1,10 +1,10 @@
 // + Cargo.toml
 use warp::Filter; // warp = {version="*", features = ["tls"]}
-use persy::{Persy, Config}; // persy = "*"
 
 mod keygen;
 mod rest;
 mod wss;
+mod db;
 
 pub async fn init() {
     let cert_path = "cert.pem";
@@ -25,26 +25,13 @@ pub async fn init() {
         }
     };
 
-    /* wss://localhost:9231/path */
+    /* wss://localhost:9231/echo */
     let echo = warp::path("echo")
         .and(warp::ws())
         .map(|ws: warp::ws::Ws| wss::handler(ws));
     let ws = warp::get().and(echo);
 
-// TODO: separate mod?
-    match Persy::create("./storage.persy") {
-        Ok(_) => { },
-        Err(_) => { /* ignore? */ }
-    }
-    let persy = Persy::open("./storage.persy", Config::new()).unwrap();
-    if !persy.exists_segment("seg").unwrap() {
-        let mut tx = persy.begin().unwrap();
-        tx.create_segment("seg").unwrap();
-        let prepared = tx.prepare().unwrap();
-        prepared.commit().unwrap();
-    }
-
-
+    let persy = db::init();
     let store_filter = warp::any().map(move || persy.clone());
 
     // POST https://localhost:9231/v1/items -d '[]'
