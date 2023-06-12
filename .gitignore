@@ -7,3 +7,4 @@ key.rsa
 key.rsa.pub
 VecU8.key
 storage.persy
+curlPost.json

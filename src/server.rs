@@ -31,17 +31,17 @@ pub async fn init() {
         .map(|ws: warp::ws::Ws| wss::handler(ws));
     let ws = warp::get().and(echo);
 
-    let persy = db::init();
-    let store_filter = warp::any().map(move || persy.clone());
+    let kvdb = db::KVDB::new();
+    let store_filter = warp::any().map(move || kvdb.clone());
 
-    // POST https://localhost:9231/v1/items -d '[]'
-    let add_items = warp::post()
+    // POST https://localhost:9231/v1/item -d '{"puk":"",...}'
+    let add_item = warp::post()
         .and(warp::path("v1"))
-        .and(warp::path("items"))
+        .and(warp::path("item"))
         .and(warp::path::end())
         .and(rest::json_body())
         .and(store_filter.clone())
-        .and_then(rest::add_items_list);
+        .and_then(rest::add_item);
 
     // GET https://localhost:9231/v1/items
     let get_items = warp::get()
@@ -52,8 +52,8 @@ pub async fn init() {
         .and_then(rest::get_store_as_json);
 
     let current_dir = std::env::current_dir().expect("failed to read current directory");
-    let other = warp::fs::dir(current_dir) /* https://localhost:9231/index.html*/;
-    let routes = get_items.or(add_items).or(ws).or(other);
+    let other = warp::fs::dir(current_dir) /* https://localhost:9231/index.html */;
+    let routes = get_items.or(add_item).or(ws).or(other);
     warp::serve(routes)
         .tls()
         .cert_path(cert_path)
