@@ -28,8 +28,17 @@ pub struct SignedMessage {
     pub sig: Vec<u8>
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct  SignedMessageDto {
+    pub puk: String,
+    pub msg: String,
+    pub sig: String
+}
+
 use ron::{Error, from_str, to_string}; // ron = "0.8"
 use ring::signature::UnparsedPublicKey; // ring = "*"
+extern crate rustc_serialize;
+use rustc_serialize::base64::{ToBase64, FromBase64, STANDARD};
 
 impl SignedMessage {
     pub fn from_json(str: &String) -> Result<SignedMessage, Error> {
@@ -43,5 +52,22 @@ impl SignedMessage {
         let public_key = UnparsedPublicKey::new(&ring::signature::ED25519, &self.puk );
         public_key.verify(&self.msg.as_bytes(), self.sig.as_ref()).unwrap();
         Ok(())
+    }
+    pub fn to_dto(self: &SignedMessage) -> SignedMessageDto {
+        SignedMessageDto {
+            puk: self.puk.to_base64(STANDARD),
+            msg: self.msg.clone(),
+            sig: self.sig.to_base64(STANDARD)
+        }
+    }
+}
+
+impl SignedMessageDto {
+    pub fn to_native(self: &SignedMessageDto) -> SignedMessage {
+        SignedMessage {
+            puk: self.puk.from_base64().unwrap(),
+            msg: self.msg.clone(),
+            sig: self.sig.from_base64().unwrap()
+        }
     }
 }

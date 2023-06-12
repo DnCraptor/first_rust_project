@@ -22,3 +22,4 @@ warp = {version="*", features = ["tls"]}
 futures = "*"
 rcgen = "*"
 persy = "*"
+rustc-serialize = "0.3"
